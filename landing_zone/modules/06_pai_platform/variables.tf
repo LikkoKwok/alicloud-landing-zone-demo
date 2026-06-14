@@ -11,3 +11,9 @@ variable "tags"              {
     type = map(string)
     default = {} 
     }
+
+variable "ai_lab_vpc_cidr" {
+  description = "CIDR block for AI Lab VPC"
+  type        = string
+  default     = "10.2.0.0/16"
+}

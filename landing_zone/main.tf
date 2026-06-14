@@ -33,6 +33,7 @@ module "hub_security" {
   environment             = var.environment
   region                  = var.region
   secondary_region        = var.secondary_region
+  hub_vpc_cidr            = var.hub_vpc_cidr
   firewall_instance_type  = var.firewall_instance_type
   backbone_bandwidth_mbps = var.backbone_bandwidth_mbps
   az_count                = var.az_count
@@ -52,13 +53,15 @@ module "cyberark_bastion" {
   providers     = { alicloud = alicloud.hub }
 }
 
+# Update core_insurance_app module to receive palo_alto_trust_eni_id
 module "core_insurance_app" {
   source         = "./modules/core_insurance_app"
-  environment    = var.environment
-  vpc_cidr       = var.vpc_cidr
-  az_count       = var.az_count
+  environment_prefix = var.environment
+  core_insurance_vpc_cidr = var.core_insurance_vpc_cidr
   transit_router = module.hub_security.transit_router_id
+  cen_id         = module.hub_security.cen_id
   kms_key_id     = module.hub_security.kms_key_id
+  palo_alto_trust_eni_id = module.hub_security.palo_alto_trust_eni_id
   tags           = local.base_tags
   providers      = { alicloud = alicloud.app }
 }
@@ -67,8 +70,8 @@ module "pai_platform" {
   source            = "./modules/pai_platform"
   count             = var.enable_gpu_cluster ? 1 : 0
   environment       = var.environment
+  ai_lab_vpc_cidr   = var.ai_lab_vpc_cidr 
   gpu_instance_type = var.gpu_instance_type
-  vpc_cidr          = var.vpc_cidr
   kms_key_id        = module.hub_security.kms_key_id
   tags              = local.base_tags
   providers         = { alicloud = alicloud.ai }

@@ -26,3 +26,10 @@ variable "tags" {
     type = map(string)
     default = {} 
     }
+
+# Add this variable
+variable "hub_vpc_cidr" {
+  description = "CIDR block for Hub Security VPC"
+  type        = string
+  default     = "10.20.0.0/16"
+}

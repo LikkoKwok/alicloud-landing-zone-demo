@@ -4,16 +4,17 @@ data "alicloud_zones" "gpu" {
 }
 
 # Dedicated VPC for AI workloads with 3 segments
+# Change from hardcoded 10.30.0.0/16 to variable
 resource "alicloud_vpc" "ai" {
   vpc_name   = "${var.environment}-ai-vpc"
-  cidr_block = "10.30.0.0/16"
+  cidr_block = var.ai_lab_vpc_cidr  # Add this variable
   tags       = merge(var.tags, { Workload = "AI" })
 }
 
-# Data segment, Training (RDMA) segment, Inference segment
+# Update subnet CIDRs using cidrsubnet relative to the new /16
 resource "alicloud_vswitch" "data" {
   vpc_id       = alicloud_vpc.ai.id
-  cidr_block   = "10.30.1.0/24"
+  cidr_block   = cidrsubnet(var.ai_lab_vpc_cidr, 8, 1)   # 10.2.1.0/24
   zone_id      = data.alicloud_zones.gpu.zones[0].id
   vswitch_name = "${var.environment}-ai-data"
   tags         = var.tags
@@ -21,7 +22,7 @@ resource "alicloud_vswitch" "data" {
 
 resource "alicloud_vswitch" "training" {
   vpc_id       = alicloud_vpc.ai.id
-  cidr_block   = "10.30.2.0/24"
+  cidr_block   = cidrsubnet(var.ai_lab_vpc_cidr, 8, 2)   # 10.2.2.0/24 (RDMA ready)
   zone_id      = data.alicloud_zones.gpu.zones[0].id
   vswitch_name = "${var.environment}-ai-training-rdma"
   tags         = merge(var.tags, { Network = "RDMA" })
@@ -29,7 +30,7 @@ resource "alicloud_vswitch" "training" {
 
 resource "alicloud_vswitch" "inference" {
   vpc_id       = alicloud_vpc.ai.id
-  cidr_block   = "10.30.3.0/24"
+  cidr_block   = cidrsubnet(var.ai_lab_vpc_cidr, 8, 3)   # 10.2.3.0/24
   zone_id      = data.alicloud_zones.gpu.zones[0].id
   vswitch_name = "${var.environment}-ai-inference"
   tags         = var.tags

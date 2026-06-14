@@ -1,77 +1,242 @@
+# ============================================
+# DATA SOURCES
+# ============================================
 data "alicloud_zones" "available" {
   available_resource_creation = "VSwitch"
 }
 
-# Web/App VPC
-resource "alicloud_vpc" "webapp" {
-  vpc_name   = "${var.environment}-webapp-vpc"
-  cidr_block = var.vpc_cidr
-  tags       = merge(var.tags, { Tier = "web-app" })
+# ============================================
+# SINGLE VPC FOR ALL 4 ENVIRONMENTS
+# Requirement: All environments share same VPC but isolated via subnets + SGs
+# ============================================
+resource "alicloud_vpc" "core_insurance" {
+  vpc_name   = "${var.environment_prefix}-core-insurance-vpc"
+  cidr_block = var.core_insurance_vpc_cidr
+  tags       = merge(var.tags, { 
+    Tier = "core-insurance"
+    Description = "Hosts all 4 environments: SIT, UAT, PreProd, Prod"
+  })
 }
 
-resource "alicloud_vswitch" "webapp" {
-  count        = var.az_count
-  vpc_id       = alicloud_vpc.webapp.id
-  cidr_block   = cidrsubnet(var.vpc_cidr, 8, count.index)
-  zone_id      = data.alicloud_zones.available.zones[count.index].id
-  vswitch_name = "${var.environment}-webapp-${count.index}"
-  tags         = var.tags
+# ============================================
+# 4 ENVIRONMENTS - WEB SUBNETS
+# Each environment gets its own isolated web subnet
+# ============================================
+
+# SIT Environment - Web
+resource "alicloud_vswitch" "sit_web" {
+  vpc_id       = alicloud_vpc.core_insurance.id
+  cidr_block   = cidrsubnet(var.core_insurance_vpc_cidr, 8, 1)   # 10.1.1.0/24
+  zone_id      = data.alicloud_zones.available.zones[0].id
+  vswitch_name = "${var.environment_prefix}-sit-web"
+  tags         = merge(var.tags, { Environment = "SIT", Tier = "web" })
 }
 
-# Internal VPC (RDS / OSS access / NAS)
-resource "alicloud_vpc" "internal" {
-  vpc_name   = "${var.environment}-internal-vpc"
-  cidr_block = cidrsubnet(var.vpc_cidr, 0, 0) == var.vpc_cidr ? "10.20.0.0/16" : "10.20.0.0/16"
-  tags       = merge(var.tags, { Tier = "internal" })
+# UAT Environment - Web
+resource "alicloud_vswitch" "uat_web" {
+  vpc_id       = alicloud_vpc.core_insurance.id
+  cidr_block   = cidrsubnet(var.core_insurance_vpc_cidr, 8, 11)  # 10.1.11.0/24
+  zone_id      = data.alicloud_zones.available.zones[0].id
+  vswitch_name = "${var.environment_prefix}-uat-web"
+  tags         = merge(var.tags, { Environment = "UAT", Tier = "web" })
 }
 
-resource "alicloud_vswitch" "internal" {
-  count        = var.az_count
-  vpc_id       = alicloud_vpc.internal.id
-  cidr_block   = cidrsubnet("10.20.0.0/16", 8, count.index)
-  zone_id      = data.alicloud_zones.available.zones[count.index].id
-  vswitch_name = "${var.environment}-internal-${count.index}"
-  tags         = var.tags
+# Pre-Production Environment - Web
+resource "alicloud_vswitch" "preprod_web" {
+  vpc_id       = alicloud_vpc.core_insurance.id
+  cidr_block   = cidrsubnet(var.core_insurance_vpc_cidr, 8, 21)  # 10.1.21.0/24
+  zone_id      = data.alicloud_zones.available.zones[0].id
+  vswitch_name = "${var.environment_prefix}-preprod-web"
+  tags         = merge(var.tags, { Environment = "PreProd", Tier = "web" })
 }
 
-# Resource Group for cost attribution
-resource "alicloud_resource_manager_resource_group" "insurance" {
-  resource_group_name = "rg-insurance-${var.environment}"
-  display_name        = "Insurance-${var.environment}"
+# Production Environment - Web
+resource "alicloud_vswitch" "prod_web" {
+  vpc_id       = alicloud_vpc.core_insurance.id
+  cidr_block   = cidrsubnet(var.core_insurance_vpc_cidr, 8, 31)  # 10.1.31.0/24
+  zone_id      = data.alicloud_zones.available.zones[0].id
+  vswitch_name = "${var.environment_prefix}-prod-web"
+  tags         = merge(var.tags, { Environment = "Prod", Tier = "web" })
 }
 
-# Encrypted RDS (MSSQL) in internal VPC
-resource "alicloud_db_instance" "core" {
+# ============================================
+# 4 ENVIRONMENTS - DATABASE SUBNETS
+# Each environment gets its own isolated DB subnet
+# ============================================
+
+# SIT Environment - Database
+resource "alicloud_vswitch" "sit_db" {
+  vpc_id       = alicloud_vpc.core_insurance.id
+  cidr_block   = cidrsubnet(var.core_insurance_vpc_cidr, 8, 2)   # 10.1.2.0/24
+  zone_id      = data.alicloud_zones.available.zones[0].id
+  vswitch_name = "${var.environment_prefix}-sit-db"
+  tags         = merge(var.tags, { Environment = "SIT", Tier = "database" })
+}
+
+# UAT Environment - Database
+resource "alicloud_vswitch" "uat_db" {
+  vpc_id       = alicloud_vpc.core_insurance.id
+  cidr_block   = cidrsubnet(var.core_insurance_vpc_cidr, 8, 12)  # 10.1.12.0/24
+  zone_id      = data.alicloud_zones.available.zones[0].id
+  vswitch_name = "${var.environment_prefix}-uat-db"
+  tags         = merge(var.tags, { Environment = "UAT", Tier = "database" })
+}
+
+# Pre-Production Environment - Database
+resource "alicloud_vswitch" "preprod_db" {
+  vpc_id       = alicloud_vpc.core_insurance.id
+  cidr_block   = cidrsubnet(var.core_insurance_vpc_cidr, 8, 22)  # 10.1.22.0/24
+  zone_id      = data.alicloud_zones.available.zones[0].id
+  vswitch_name = "${var.environment_prefix}-preprod-db"
+  tags         = merge(var.tags, { Environment = "PreProd", Tier = "database" })
+}
+
+# Production Environment - Database
+resource "alicloud_vswitch" "prod_db" {
+  vpc_id       = alicloud_vpc.core_insurance.id
+  cidr_block   = cidrsubnet(var.core_insurance_vpc_cidr, 8, 32)  # 10.1.32.0/24
+  zone_id      = data.alicloud_zones.available.zones[0].id
+  vswitch_name = "${var.environment_prefix}-prod-db"
+  tags         = merge(var.tags, { Environment = "Prod", Tier = "database" })
+}
+
+# ============================================
+# RESOURCE GROUPS PER ENVIRONMENT (Cost attribution)
+# ============================================
+resource "alicloud_resource_manager_resource_group" "insurance_sit" {
+  resource_group_name = "rg-insurance-sit-${var.environment_prefix}"
+  display_name        = "Insurance-SIT-${var.environment_prefix}"
+}
+
+resource "alicloud_resource_manager_resource_group" "insurance_uat" {
+  resource_group_name = "rg-insurance-uat-${var.environment_prefix}"
+  display_name        = "Insurance-UAT-${var.environment_prefix}"
+}
+
+resource "alicloud_resource_manager_resource_group" "insurance_preprod" {
+  resource_group_name = "rg-insurance-preprod-${var.environment_prefix}"
+  display_name        = "Insurance-PreProd-${var.environment_prefix}"
+}
+
+resource "alicloud_resource_manager_resource_group" "insurance_prod" {
+  resource_group_name = "rg-insurance-prod-${var.environment_prefix}"
+  display_name        = "Insurance-Prod-${var.environment_prefix}"
+}
+
+# ============================================
+# ENCRYPTED RDS FOR EACH ENVIRONMENT
+# Requirement: Each environment has isolated database
+# ============================================
+
+# SIT Database
+resource "alicloud_db_instance" "core_sit" {
   engine               = "SQLServer"
   engine_version       = "2019_ent"
   instance_type        = var.db_instance_class
   instance_storage     = var.db_storage_gb
-  vswitch_id           = alicloud_vswitch.internal[0].id
-  instance_name        = "${var.environment}-core-insurance-db"
+  vswitch_id           = alicloud_vswitch.sit_db.id
+  instance_name        = "core-insurance-sit-db"
   encryption_key       = var.kms_key_id
-  resource_group_id    = alicloud_resource_manager_resource_group.insurance.id
-  tags                 = var.tags
+  resource_group_id    = alicloud_resource_manager_resource_group.insurance_sit.id
+  tags                 = merge(var.tags, { Environment = "SIT" })
 }
 
-# Encrypted OSS for application data
-resource "alicloud_oss_bucket" "app_data" {
-  bucket = "insurance-app-${var.environment}"
-  tags   = var.tags
+# UAT Database
+resource "alicloud_db_instance" "core_uat" {
+  engine               = "SQLServer"
+  engine_version       = "2019_ent"
+  instance_type        = var.db_instance_class
+  instance_storage     = var.db_storage_gb
+  vswitch_id           = alicloud_vswitch.uat_db.id
+  instance_name        = "core-insurance-uat-db"
+  encryption_key       = var.kms_key_id
+  resource_group_id    = alicloud_resource_manager_resource_group.insurance_uat.id
+  tags                 = merge(var.tags, { Environment = "UAT" })
 }
 
-resource "alicloud_oss_bucket_server_side_encryption" "app_enc" {
-  bucket            = alicloud_oss_bucket.app_data.bucket
+# Pre-Production Database
+resource "alicloud_db_instance" "core_preprod" {
+  engine               = "SQLServer"
+  engine_version       = "2019_ent"
+  instance_type        = var.db_instance_class
+  instance_storage     = var.db_storage_gb
+  vswitch_id           = alicloud_vswitch.preprod_db.id
+  instance_name        = "core-insurance-preprod-db"
+  encryption_key       = var.kms_key_id
+  resource_group_id    = alicloud_resource_manager_resource_group.insurance_preprod.id
+  tags                 = merge(var.tags, { Environment = "PreProd" })
+}
+
+# Production Database
+resource "alicloud_db_instance" "core_prod" {
+  engine               = "SQLServer"
+  engine_version       = "2019_ent"
+  instance_type        = var.db_instance_class
+  instance_storage     = var.db_storage_gb
+  vswitch_id           = alicloud_vswitch.prod_db.id
+  instance_name        = "core-insurance-prod-db"
+  encryption_key       = var.kms_key_id
+  resource_group_id    = alicloud_resource_manager_resource_group.insurance_prod.id
+  tags                 = merge(var.tags, { Environment = "Prod" })
+}
+
+# ============================================
+# ENCRYPTED OSS BUCKETS PER ENVIRONMENT
+# ============================================
+resource "alicloud_oss_bucket" "app_data_sit" {
+  bucket = "insurance-app-sit-${var.environment_prefix}"
+  tags   = merge(var.tags, { Environment = "SIT" })
+}
+
+resource "alicloud_oss_bucket_server_side_encryption" "app_enc_sit" {
+  bucket            = alicloud_oss_bucket.app_data_sit.bucket
   sse_algorithm     = "KMS"
   kms_master_key_id = var.kms_key_id
 }
 
-# Attach app VPC to the CEN Transit Router
-resource "alicloud_cen_transit_router_vpc_attachment" "webapp" {
+resource "alicloud_oss_bucket" "app_data_uat" {
+  bucket = "insurance-app-uat-${var.environment_prefix}"
+  tags   = merge(var.tags, { Environment = "UAT" })
+}
+
+resource "alicloud_oss_bucket_server_side_encryption" "app_enc_uat" {
+  bucket            = alicloud_oss_bucket.app_data_uat.bucket
+  sse_algorithm     = "KMS"
+  kms_master_key_id = var.kms_key_id
+}
+
+resource "alicloud_oss_bucket" "app_data_preprod" {
+  bucket = "insurance-app-preprod-${var.environment_prefix}"
+  tags   = merge(var.tags, { Environment = "PreProd" })
+}
+
+resource "alicloud_oss_bucket_server_side_encryption" "app_enc_preprod" {
+  bucket            = alicloud_oss_bucket.app_data_preprod.bucket
+  sse_algorithm     = "KMS"
+  kms_master_key_id = var.kms_key_id
+}
+
+resource "alicloud_oss_bucket" "app_data_prod" {
+  bucket = "insurance-app-prod-${var.environment_prefix}"
+  tags   = merge(var.tags, { Environment = "Prod" })
+}
+
+resource "alicloud_oss_bucket_server_side_encryption" "app_enc_prod" {
+  bucket            = alicloud_oss_bucket.app_data_prod.bucket
+  sse_algorithm     = "KMS"
+  kms_master_key_id = var.kms_key_id
+}
+
+# ============================================
+# ATTACH CORE INSURANCE VPC TO CEN
+# ============================================
+resource "alicloud_cen_transit_router_vpc_attachment" "core_insurance" {
   cen_id            = var.cen_id
   transit_router_id = var.transit_router
-  vpc_id            = alicloud_vpc.webapp.id
+  vpc_id            = alicloud_vpc.core_insurance.id
+  
   zone_mappings {
     zone_id    = data.alicloud_zones.available.zones[0].id
-    vswitch_id = alicloud_vswitch.webapp[0].id
+    vswitch_id = alicloud_vswitch.prod_web.id  # Representative subnet for attachment
   }
 }

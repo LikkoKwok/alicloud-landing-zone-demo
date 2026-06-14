@@ -5,14 +5,14 @@ data "alicloud_zones" "available" {
 # Hub VPC
 resource "alicloud_vpc" "hub" {
   vpc_name   = "${var.environment}-hub-vpc"
-  cidr_block = "10.0.0.0/16"
+  cidr_block = var.hub_vpc_cidr  # Use variable instead of hardcoded
   tags       = var.tags
 }
 
-# Untrusted, Trusted, and Ops VSwitches (Palo Alto sits between untrusted/trusted)
+# Update subnet CIDRs to be relative to the new /16
 resource "alicloud_vswitch" "untrusted" {
   vpc_id       = alicloud_vpc.hub.id
-  cidr_block   = "10.0.1.0/24"
+  cidr_block   = cidrsubnet(var.hub_vpc_cidr, 8, 1)   # Was: 10.0.1.0/24, now: 10.20.1.0/24
   zone_id      = data.alicloud_zones.available.zones[0].id
   vswitch_name = "${var.environment}-untrusted"
   tags         = var.tags
@@ -20,7 +20,7 @@ resource "alicloud_vswitch" "untrusted" {
 
 resource "alicloud_vswitch" "trusted" {
   vpc_id       = alicloud_vpc.hub.id
-  cidr_block   = "10.0.2.0/24"
+  cidr_block   = cidrsubnet(var.hub_vpc_cidr, 8, 2)   # Was: 10.0.2.0/24, now: 10.20.2.0/24
   zone_id      = data.alicloud_zones.available.zones[0].id
   vswitch_name = "${var.environment}-trusted"
   tags         = var.tags
@@ -28,11 +28,12 @@ resource "alicloud_vswitch" "trusted" {
 
 resource "alicloud_vswitch" "ops" {
   vpc_id       = alicloud_vpc.hub.id
-  cidr_block   = "10.0.3.0/24"
+  cidr_block   = cidrsubnet(var.hub_vpc_cidr, 8, 3)   # Was: 10.0.3.0/24, now: 10.20.3.0/24
   zone_id      = data.alicloud_zones.available.zones[0].id
   vswitch_name = "${var.environment}-ops"
   tags         = var.tags
 }
+
 
 # --- Self-managed KMS key (mirrors self-purchased KMS for at-rest encryption) ---
 resource "alicloud_kms_key" "hub" {

@@ -21,8 +21,9 @@ variable "app_account_id" { type = string }
 variable "ai_account_id"  { type = string }
 
 variable "vpc_cidr" {
-  description = "CIDR for the environment spoke VPC"
+  description = "DEPRECATED: Use core_insurance_vpc_cidr"
   type        = string
+  default     = null
 }
 
 variable "az_count" {
@@ -71,4 +72,49 @@ variable "log_retention_days" {
 variable "common_tags" {
   type    = map(string)
   default = {}
+}
+
+# variables added for multi-vpc design in the landing zone
+variable "hub_vpc_cidr" {
+  description = "CIDR for Hub Security VPC (Palo Alto, WAF, security services)"
+  type        = string
+  default     = "10.20.0.0/16"
+}
+
+variable "core_insurance_vpc_cidr" {
+  description = "CIDR for Core Insurance VPC (4 environments)"
+  type        = string
+  default     = "10.1.0.0/16"
+}
+
+variable "ai_lab_vpc_cidr" {
+  description = "CIDR for AI Lab VPC (training + inference)"
+  type        = string
+  default     = "10.2.0.0/16"
+}
+
+variable "shared_service_vpc_cidr" {
+  description = "CIDR for Shared Service VPC (ingress, CyberArk, bastion)"
+  type        = string
+  default     = "10.10.0.0/16"
+}
+
+variable "logging_vpc_cidr" {
+  description = "CIDR for Logging VPC (central SLS)"
+  type        = string
+  default     = "10.30.0.0/16"
+}
+
+# Keep but rename the old one for backward compatibility
+variable "vpc_cidr" {
+  description = "DEPRECATED: Use core_insurance_vpc_cidr instead"
+  type        = string
+  default     = "10.1.0.0/16"
+}
+
+# assume 10.0.0.0/8 as the internal network for admin access to CyberArk and bastion host
+variable "admin_source_cidr" {
+  description = "CIDR block allowed to access CyberArk PVWA (HTTPS) and SSH"
+  type        = string
+  default     = "10.0.0.0/8"  # Default to internal network, change as needed or for demo
 }
