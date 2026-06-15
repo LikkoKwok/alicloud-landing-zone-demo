@@ -40,7 +40,7 @@ resource "alicloud_ram_role" "actiontrail_sls" {
 }
 
 resource "alicloud_ram_role_policy_attachment" "actiontrail_log" {
-  role_name   = alicloud_ram_role.actiontrail_sls.name
+  role_name   = alicloud_ram_role.actiontrail_sls.role_name
   policy_name = "AliyunLogFullAccess"
   policy_type = "System"
 }
@@ -93,7 +93,7 @@ resource "alicloud_config_rule" "rds_encryption" {
 resource "alicloud_config_rule" "slb_https" {
   rule_name                 = "slb-listener-https-check"
   source_owner              = "ALIYUN"
-  source_identifier         = "slb-listener-protocol"
+  source_identifier         = "slb-listener-https-check"
   resource_types_scope      = ["ACS::SLB::LoadBalancer"]
   risk_level                = 2
   config_rule_trigger_types = "ConfigurationItemChangeNotification"

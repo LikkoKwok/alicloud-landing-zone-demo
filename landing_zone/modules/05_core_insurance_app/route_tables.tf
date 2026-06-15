@@ -6,10 +6,10 @@
 
 # Create a custom route table for each environment's web subnet
 resource "alicloud_route_table" "env_web" {
-  for_each       = local.environments
-  vpc_id         = alicloud_vpc.webapp.id
-  route_table_name = "${var.environment}-${each.key}-web-rt"
-  description    = "Route table forcing ${each.key} web traffic through Palo Alto"
+  for_each         = local.environments
+  vpc_id           = alicloud_vpc.core_insurance.id  # Changed from webapp
+  route_table_name = "${var.environment_prefix}-${each.key}-web-rt"
+  description      = "Route table forcing ${each.key} web traffic through Palo Alto"
 }
 
 # Default enforce each web subnet in every environment route traffic to 0.0.0.0/0 pointing to the Palo Alto's Trust ENI

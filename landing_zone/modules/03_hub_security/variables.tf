@@ -33,3 +33,8 @@ variable "hub_vpc_cidr" {
   type        = string
   default     = "10.20.0.0/16"
 }
+
+output "palo_alto_trust_eni_id" {
+  value       = alicloud_instance.palo_alto[0].primary_network_interface_id
+  description = "ENI ID of Palo Alto primary interface for route table next-hop"
+}

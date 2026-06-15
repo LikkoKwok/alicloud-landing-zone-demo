@@ -23,11 +23,12 @@ resource "alicloud_oss_bucket_server_side_encryption" "curated_enc" {
 }
 
 # DataWorks project orchestrating the PII scan + redaction job
+# The display_name field has validation rules (no spaces? special chars?)
 resource "alicloud_data_works_project" "dsc_pipeline" {
-  project_name = "pii-masking-${var.environment}"
+  project_name    = "pii_masking_${var.environment}"  # Use underscores, no hyphens
   pai_task_enabled = true
-  display_name = "PII Masking Pipeline"
-  description  = "Scans raw_zone, redacts PII, writes to curated_zone before training"
+  display_name    = "PII_Masking_${var.environment}"  # Use underscores, no spaces
+  description     = "Scans raw_zone, redacts PII, writes to curated_zone before training"
 }
 
 # NOTE: Sensitive Data Discovery (DSC/SDDP) classification rules are configured

@@ -10,4 +10,7 @@ terraform {
   backend "local" {}
 }
 
-provider "alicloud" {}
+
+provider "alicloud" {
+  region = var.region
+}

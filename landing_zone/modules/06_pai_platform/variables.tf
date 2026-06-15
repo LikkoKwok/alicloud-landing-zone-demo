@@ -21,3 +21,8 @@ variable "ai_lab_vpc_cidr" {
   type        = string
   default     = "10.2.0.0/16"
 }
+
+variable "hub_vpc_id" {
+  description = "Hub Security VPC ID for AI Gateway placement (shared with Palo Alto)"
+  type        = string
+}

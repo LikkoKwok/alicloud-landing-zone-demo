@@ -27,7 +27,7 @@ locals {
 
 resource "alicloud_vswitch" "web" {
   for_each      = local.environments
-  vpc_id        = alicloud_vpc.webapp.id
+  vpc_id        = alicloud_vpc.core_insurance.id
   cidr_block    = each.value.web_cidr
   zone_id       = data.alicloud_zones.available.zones[0].id
   vswitch_name  = "${var.environment}-${each.key}-web"
@@ -36,7 +36,7 @@ resource "alicloud_vswitch" "web" {
 
 resource "alicloud_vswitch" "db" {
   for_each      = local.environments
-  vpc_id        = alicloud_vpc.internal.id
+  vpc_id        = alicloud_vpc.core_insurance.id
   cidr_block    = each.value.db_cidr
   zone_id       = data.alicloud_zones.available.zones[0].id
   vswitch_name  = "${var.environment}-${each.key}-db"

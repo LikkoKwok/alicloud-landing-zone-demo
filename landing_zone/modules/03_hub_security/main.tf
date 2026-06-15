@@ -75,8 +75,8 @@ resource "alicloud_route_table_attachment" "trusted" {
 resource "alicloud_route_entry" "to_firewall" {
   route_table_id        = alicloud_route_table.trusted_rt.id
   destination_cidrblock = "0.0.0.0/0"
-  nexthop_type          = "Instance"
-  nexthop_id            = alicloud_instance.palo_alto[0].id
+  nexthop_type          = "NetworkInterface"
+  nexthop_id            = alicloud_instance.palo_alto[0].alicloud_instance.palo_alto[0].primary_network_interface_id
 }
 
 # --- Unified ingress: internal SLB after firewall ---
@@ -115,7 +115,7 @@ resource "alicloud_cen_transit_router_vpc_attachment" "hub" {
 
 # Cross-border bandwidth: China (HK) <-> Asia-Pacific (SG)
 resource "alicloud_cen_bandwidth_package" "cross_border" {
-  geographic_region_a_id     = "China"
+  geographic_region_a_id     = "China" # doesn't allow specific regions
   geographic_region_b_id     = "Asia-Pacific"
   bandwidth                  = var.backbone_bandwidth_mbps
   cen_bandwidth_package_name = "${var.environment}-hk-sg-bwp"

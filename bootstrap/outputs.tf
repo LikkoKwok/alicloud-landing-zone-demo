@@ -5,7 +5,12 @@ output "main_project_backend_config" {
     bucket = "${alicloud_oss_bucket.tf_state_bucket.bucket}"
     prefix = "main-project/"
     key    = "terraform.tfstate"
-    region = "${alicloud_oss_bucket.tf_state_bucket.region}"
+    region = "${var.region}"
   }
 EOF
+}
+
+output "bucket_name" {
+  description = "Name of the created OSS bucket"
+  value       = alicloud_oss_bucket.tf_state_bucket.bucket
 }
