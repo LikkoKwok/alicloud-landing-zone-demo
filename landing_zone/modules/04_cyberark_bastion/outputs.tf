@@ -1,17 +1,31 @@
-# Use the correct resource names from your main.tf
-output "bastion_private_ip" {
-  value = alicloud_instance.cyberark_pvwa.private_ip  # Changed from cyberark to cyberark_pvwa
+output "vpc_id" {
+  value = alicloud_vpc.shared_service.id
 }
 
-output "bastion_security_group_id" {
-  value = alicloud_security_group.cyberark_pvwa.id  # Changed from cyberark to cyberark_pvwa
+output "vpc_cidr" {
+  value = alicloud_vpc.shared_service.cidr_block
 }
 
-# Optional: add vault outputs
-output "vault_private_ip" {
-  value = alicloud_instance.cyberark_vault.private_ip
+output "unified_ingress_slb_id" {
+  value = alicloud_slb_load_balancer.unified_ingress.id
 }
 
-output "vault_security_group_id" {
-  value = alicloud_security_group.cyberark_vault.id
+output "ai_gateway_security_group_id" {
+  value = alicloud_security_group.ai_gateway_sg.id
+}
+
+output "pvwa_instance_id" {
+  value = alicloud_instance.cyberark_pvwa.id
+}
+
+output "vault_instance_id" {
+  value = alicloud_instance.cyberark_vault.id
+}
+
+output "ops_bastion_id" {
+  value = alicloud_instance.ops_bastion.id
+}
+
+output "shared_service_vpc_attachment_id" {
+  value = var.cen_id != "" ? alicloud_cen_transit_router_vpc_attachment.shared_service[0].id : ""
 }

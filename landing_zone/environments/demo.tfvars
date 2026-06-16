@@ -1,24 +1,19 @@
-region           = "cn-hongkong"
-secondary_region = "ap-southeast-1"
-environment      = "demo"
+region                  = "cn-hongkong"
+secondary_region        = "ap-southeast-1"
+environment             = "demo"
 
-# Single-account demo: all aliases point to one account
-hub_account_id = "1111111111111111"
-log_account_id = "1111111111111111"
-app_account_id = "1111111111111111"
-ai_account_id  = "1111111111111111"
+# VPC CIDR
+hub_vpc_cidr            = "10.20.0.0/16"
+core_insurance_vpc_cidr = "10.1.0.0/16"
+ai_lab_vpc_cidr         = "10.2.0.0/16"
+shared_service_vpc_cidr = "10.10.0.0/16"
 
-vpc_cidr               = "10.90.0.0/16"
-az_count               = 1
-enable_gpu_cluster     = false
-enable_cyberark        = true
-firewall_instance_type = "ecs.t6-c1m1.large"
-backbone_bandwidth_mbps = 2
-log_retention_days     = 7
-azure_ad_metadata_url  = "https://samltest.id/saml/idp"
+# Restricted Compute Resources for Demo Purpose
+az_count                = 1
+enable_gpu_cluster      = false
+firewall_instance_type  = "ecs.e-c1m1.large"
+bastion_instance_type   = "ecs.e-c1m1.large"
 
-common_tags = {
-  CostCenter = "demo"
-  Owner      = "exam-candidate"
-  Region     = "cn-hongkong"
-}
+# Log
+log_retention_days      = 30
+admin_source_cidr       = "10.0.0.0/8"

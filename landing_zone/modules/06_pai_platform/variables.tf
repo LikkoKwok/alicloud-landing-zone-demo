@@ -1,8 +1,4 @@
 variable "environment"      { type = string }
-variable "environment_prefix" {
-  description = "Prefix for naming resources (e.g., 'demo', 'prod')"
-  type        = string
-}
 variable "gpu_instance_type" { type = string }
 variable "vpc_cidr"          { type = string }
 variable "kms_key_id"        { type = string }

@@ -20,6 +20,7 @@ module "identity_sso" {
   providers             = { alicloud = alicloud.master }
 }
 
+# Hub Security Module (Palo Alto + WAF + CEN)
 module "hub_security" {
   source                  = "./modules/03_hub_security"
   environment             = var.environment
@@ -36,22 +37,27 @@ module "hub_security" {
   }
 }
 
-module "cyberark_bastion" {
+# Shared Service Module (CyberArk + Unified Ingress + AI Gateway + Ops Bastion)
+module "shared_service" {
   source             = "./modules/04_cyberark_bastion"
-  count              = var.enable_cyberark ? 1 : 0
   environment        = var.environment
+  vpc_cidr           = var.shared_service_vpc_cidr
+  region             = var.region
+  az_count           = var.az_count
   admin_source_cidr  = var.admin_source_cidr
-  vpc_id             = module.hub_security.hub_vpc_id
-  ops_vswitch_id     = module.hub_security.ops_vswitch_id
+  instance_type      = var.bastion_instance_type
+  hub_vpc_id         = module.hub_security.hub_vpc_id
+  cen_id             = module.hub_security.cen_id
+  transit_router_id  = module.hub_security.transit_router_id
   tags               = local.base_tags
   providers          = { alicloud = alicloud.hub }
 }
+
 
 # Update core_insurance_app module to receive palo_alto_trust_eni_id
 module "core_insurance_app" {
   source         = "./modules/05_core_insurance_app"
   environment        = var.environment
-  environment_prefix = var.environment_prefix
   admin_source_cidr  = var.admin_source_cidr
   core_insurance_vpc_cidr = var.core_insurance_vpc_cidr
   transit_router = module.hub_security.transit_router_id
@@ -66,7 +72,6 @@ module "pai_platform" {
   source            = "./modules/06_pai_platform"
   count             = var.enable_gpu_cluster ? 1 : 0
   environment       = var.environment
-  environment_prefix = var.environment_prefix
   vpc_cidr          = var.ai_lab_vpc_cidr
   hub_vpc_id        = module.hub_security.hub_vpc_id
   gpu_instance_type = var.gpu_instance_type
@@ -97,6 +102,7 @@ module "financial_governance" {
   providers   = { alicloud = alicloud.master }
 }
 
+# Logging Account Module
 module "logging_account" {
   source             = "./modules/10_logging_account"
   environment        = var.environment

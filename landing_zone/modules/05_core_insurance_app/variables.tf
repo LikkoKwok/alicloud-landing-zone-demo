@@ -1,6 +1,5 @@
-variable "environment"      { type = string }
-variable "environment_prefix" {
-  description = "Prefix for naming resources (e.g., 'demo', 'prod')"
+variable "environment" {
+  description = "Environment name (e.g., demo, sit, uat, preprod, prod)"
   type        = string
 }
 

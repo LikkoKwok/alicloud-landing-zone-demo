@@ -10,7 +10,7 @@
 # SIT Web Security Group
 resource "alicloud_security_group" "sit_web_sg" {
   vpc_id      = alicloud_vpc.core_insurance.id
-  security_group_name        = "sg-sit-web-${var.environment_prefix}"
+  security_group_name        = "sg-sit-web-${var.environment}"
   description = "Security group for SIT web tier - inbound only from Palo Alto"
   tags        = merge(var.tags, { Environment = "SIT", Tier = "web" })
 }
@@ -100,7 +100,7 @@ resource "alicloud_security_group_rule" "sit_web_deny_direct" {
 # SIT DB Security Group
 resource "alicloud_security_group" "sit_db_sg" {
   vpc_id      = alicloud_vpc.core_insurance.id
-  security_group_name        = "sg-sit-db-${var.environment_prefix}"
+  security_group_name        = "sg-sit-db-${var.environment}"
   tags        = merge(var.tags, { Environment = "SIT", Tier = "database" })
 }
 
@@ -133,7 +133,7 @@ resource "alicloud_security_group_rule" "sit_db_mysql" {
 # UAT Web Security Group
 resource "alicloud_security_group" "uat_web_sg" {
   vpc_id      = alicloud_vpc.core_insurance.id
-  security_group_name        = "sg-uat-web-${var.environment_prefix}"
+  security_group_name        = "sg-uat-web-${var.environment}"
   description = "Security group for UAT web tier"
   tags        = merge(var.tags, { Environment = "UAT", Tier = "web" })
 }
@@ -176,7 +176,7 @@ resource "alicloud_security_group_rule" "uat_web_deny_direct" {
 
 resource "alicloud_security_group" "uat_db_sg" {
   vpc_id      = alicloud_vpc.core_insurance.id
-  security_group_name        = "sg-uat-db-${var.environment_prefix}"
+  security_group_name        = "sg-uat-db-${var.environment}"
   description = "Security group for UAT database tier"
   tags        = merge(var.tags, { Environment = "UAT", Tier = "database" })
 }
@@ -196,7 +196,7 @@ resource "alicloud_security_group_rule" "uat_db_mssql" {
 
 resource "alicloud_security_group" "preprod_web_sg" {
   vpc_id      = alicloud_vpc.core_insurance.id
-  security_group_name        = "sg-preprod-web-${var.environment_prefix}"
+  security_group_name        = "sg-preprod-web-${var.environment}"
   description = "Security group for Pre-Production web tier"
   tags        = merge(var.tags, { Environment = "PreProd", Tier = "web" })
 }
@@ -241,7 +241,7 @@ resource "alicloud_security_group_rule" "preprod_web_deny_direct" {
 
 resource "alicloud_security_group" "preprod_db_sg" {
   vpc_id      = alicloud_vpc.core_insurance.id
-  security_group_name        = "sg-preprod-db-${var.environment_prefix}"
+  security_group_name        = "sg-preprod-db-${var.environment}"
   description = "Security group for Pre-Production database tier"
   tags        = merge(var.tags, { Environment = "PreProd", Tier = "database" })
 }
@@ -261,7 +261,7 @@ resource "alicloud_security_group_rule" "preprod_db_mssql" {
 
 resource "alicloud_security_group" "prod_web_sg" {
   vpc_id      = alicloud_vpc.core_insurance.id
-  security_group_name        = "sg-prod-web-${var.environment_prefix}"
+  security_group_name        = "sg-prod-web-${var.environment}"
   description = "Security group for Production web tier - highest security"
   tags        = merge(var.tags, { Environment = "Prod", Tier = "web" })
 }
@@ -328,7 +328,7 @@ resource "alicloud_security_group_rule" "prod_web_out_api" {
 
 resource "alicloud_security_group" "prod_db_sg" {
   vpc_id      = alicloud_vpc.core_insurance.id
-  security_group_name        = "sg-prod-db-${var.environment_prefix}"
+  security_group_name        = "sg-prod-db-${var.environment}"
   description = "Security group for Production database tier - strict access"
   tags        = merge(var.tags, { Environment = "Prod", Tier = "database" })
 }

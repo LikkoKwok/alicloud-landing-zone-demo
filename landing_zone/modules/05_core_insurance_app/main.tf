@@ -10,7 +10,7 @@ data "alicloud_zones" "available" {
 # Requirement: All environments share same VPC but isolated via subnets + SGs
 # ============================================
 resource "alicloud_vpc" "core_insurance" {
-  vpc_name   = "${var.environment_prefix}-core-insurance-vpc"
+  vpc_name   = "${var.environment}-core-insurance-vpc"
   cidr_block = var.core_insurance_vpc_cidr
   tags       = merge(var.tags, { 
     Tier = "core-insurance"
@@ -28,7 +28,7 @@ resource "alicloud_vswitch" "sit_web" {
   vpc_id       = alicloud_vpc.core_insurance.id
   cidr_block   = cidrsubnet(var.core_insurance_vpc_cidr, 8, 1)   # 10.1.1.0/24
   zone_id      = data.alicloud_zones.available.zones[0].id
-  vswitch_name = "${var.environment_prefix}-sit-web"
+  vswitch_name = "${var.environment}-sit-web"
   tags         = merge(var.tags, { Environment = "SIT", Tier = "web" })
 }
 
@@ -37,7 +37,7 @@ resource "alicloud_vswitch" "uat_web" {
   vpc_id       = alicloud_vpc.core_insurance.id
   cidr_block   = cidrsubnet(var.core_insurance_vpc_cidr, 8, 11)  # 10.1.11.0/24
   zone_id      = data.alicloud_zones.available.zones[0].id
-  vswitch_name = "${var.environment_prefix}-uat-web"
+  vswitch_name = "${var.environment}-uat-web"
   tags         = merge(var.tags, { Environment = "UAT", Tier = "web" })
 }
 
@@ -46,7 +46,7 @@ resource "alicloud_vswitch" "preprod_web" {
   vpc_id       = alicloud_vpc.core_insurance.id
   cidr_block   = cidrsubnet(var.core_insurance_vpc_cidr, 8, 21)  # 10.1.21.0/24
   zone_id      = data.alicloud_zones.available.zones[0].id
-  vswitch_name = "${var.environment_prefix}-preprod-web"
+  vswitch_name = "${var.environment}-preprod-web"
   tags         = merge(var.tags, { Environment = "PreProd", Tier = "web" })
 }
 
@@ -55,7 +55,7 @@ resource "alicloud_vswitch" "prod_web" {
   vpc_id       = alicloud_vpc.core_insurance.id
   cidr_block   = cidrsubnet(var.core_insurance_vpc_cidr, 8, 31)  # 10.1.31.0/24
   zone_id      = data.alicloud_zones.available.zones[0].id
-  vswitch_name = "${var.environment_prefix}-prod-web"
+  vswitch_name = "${var.environment}-prod-web"
   tags         = merge(var.tags, { Environment = "Prod", Tier = "web" })
 }
 
@@ -70,7 +70,7 @@ resource "alicloud_vswitch" "prod_web" {
 #   vpc_id       = alicloud_vpc.core_insurance.id
 #   cidr_block   = cidrsubnet(var.core_insurance_vpc_cidr, 8, 2)   # 10.1.2.0/24
 #   zone_id      = data.alicloud_zones.available.zones[0].id
-#   vswitch_name = "${var.environment_prefix}-sit-db"
+#   vswitch_name = "${var.environment}-sit-db"
 #   tags         = merge(var.tags, { Environment = "SIT", Tier = "database" })
 # }
 
@@ -79,7 +79,7 @@ resource "alicloud_vswitch" "prod_web" {
 #   vpc_id       = alicloud_vpc.core_insurance.id
 #   cidr_block   = cidrsubnet(var.core_insurance_vpc_cidr, 8, 12)  # 10.1.12.0/24
 #   zone_id      = data.alicloud_zones.available.zones[0].id
-#   vswitch_name = "${var.environment_prefix}-uat-db"
+#   vswitch_name = "${var.environment}-uat-db"
 #   tags         = merge(var.tags, { Environment = "UAT", Tier = "database" })
 # }
 
@@ -88,7 +88,7 @@ resource "alicloud_vswitch" "prod_web" {
 #   vpc_id       = alicloud_vpc.core_insurance.id
 #   cidr_block   = cidrsubnet(var.core_insurance_vpc_cidr, 8, 22)  # 10.1.22.0/24
 #   zone_id      = data.alicloud_zones.available.zones[0].id
-#   vswitch_name = "${var.environment_prefix}-preprod-db"
+#   vswitch_name = "${var.environment}-preprod-db"
 #   tags         = merge(var.tags, { Environment = "PreProd", Tier = "database" })
 # }
 
@@ -97,7 +97,7 @@ resource "alicloud_vswitch" "prod_db" {
   vpc_id       = alicloud_vpc.core_insurance.id
   cidr_block   = cidrsubnet(var.core_insurance_vpc_cidr, 8, 32)  # 10.1.32.0/24
   zone_id      = data.alicloud_zones.available.zones[0].id
-  vswitch_name = "${var.environment_prefix}-prod-db"
+  vswitch_name = "${var.environment}-prod-db"
   tags         = merge(var.tags, { Environment = "Prod", Tier = "database" })
 }
 
@@ -105,23 +105,23 @@ resource "alicloud_vswitch" "prod_db" {
 # RESOURCE GROUPS PER ENVIRONMENT (Cost attribution)
 # ============================================
 resource "alicloud_resource_manager_resource_group" "insurance_sit" {
-  resource_group_name = "rg-insurance-sit-${var.environment_prefix}"
-  display_name        = "Insurance-SIT-${var.environment_prefix}"
+  resource_group_name = "rg-insurance-sit-${var.environment}"
+  display_name        = "Insurance-SIT-${var.environment}"
 }
 
 resource "alicloud_resource_manager_resource_group" "insurance_uat" {
-  resource_group_name = "rg-insurance-uat-${var.environment_prefix}"
-  display_name        = "Insurance-UAT-${var.environment_prefix}"
+  resource_group_name = "rg-insurance-uat-${var.environment}"
+  display_name        = "Insurance-UAT-${var.environment}"
 }
 
 resource "alicloud_resource_manager_resource_group" "insurance_preprod" {
-  resource_group_name = "rg-insurance-preprod-${var.environment_prefix}"
-  display_name        = "Insurance-PreProd-${var.environment_prefix}"
+  resource_group_name = "rg-insurance-preprod-${var.environment}"
+  display_name        = "Insurance-PreProd-${var.environment}"
 }
 
 resource "alicloud_resource_manager_resource_group" "insurance_prod" {
-  resource_group_name = "rg-insurance-prod-${var.environment_prefix}"
-  display_name        = "Insurance-Prod-${var.environment_prefix}"
+  resource_group_name = "rg-insurance-prod-${var.environment}"
+  display_name        = "Insurance-Prod-${var.environment}"
 }
 
 # ============================================
@@ -186,7 +186,7 @@ resource "alicloud_db_instance" "core_prod" {
 # ENCRYPTED OSS BUCKETS PER ENVIRONMENT
 # ============================================
 resource "alicloud_oss_bucket" "app_data_sit" {
-  bucket = "insurance-app-sit-${var.environment_prefix}"
+  bucket = "insurance-app-sit-${var.environment}"
   tags   = merge(var.tags, { Environment = "SIT" })
 }
 
@@ -197,7 +197,7 @@ resource "alicloud_oss_bucket_server_side_encryption" "app_enc_sit" {
 }
 
 resource "alicloud_oss_bucket" "app_data_uat" {
-  bucket = "insurance-app-uat-${var.environment_prefix}"
+  bucket = "insurance-app-uat-${var.environment}"
   tags   = merge(var.tags, { Environment = "UAT" })
 }
 
@@ -208,7 +208,7 @@ resource "alicloud_oss_bucket_server_side_encryption" "app_enc_uat" {
 }
 
 resource "alicloud_oss_bucket" "app_data_preprod" {
-  bucket = "insurance-app-preprod-${var.environment_prefix}"
+  bucket = "insurance-app-preprod-${var.environment}"
   tags   = merge(var.tags, { Environment = "PreProd" })
 }
 
@@ -219,7 +219,7 @@ resource "alicloud_oss_bucket_server_side_encryption" "app_enc_preprod" {
 }
 
 resource "alicloud_oss_bucket" "app_data_prod" {
-  bucket = "insurance-app-prod-${var.environment_prefix}"
+  bucket = "insurance-app-prod-${var.environment}"
   tags   = merge(var.tags, { Environment = "Prod" })
 }
 

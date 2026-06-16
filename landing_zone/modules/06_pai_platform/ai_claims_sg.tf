@@ -5,7 +5,7 @@
 
 resource "alicloud_security_group" "ai_claims_sg" {
   vpc_id      = alicloud_vpc.ai.id
-  security_group_name        = "sg-ai-claims-service-${var.environment_prefix}"
+  security_group_name        = "sg-ai-claims-service"
   description = "AI Claims service - end-user facing, API key authenticated"
   tags        = merge(var.tags, { Service = "AI-Claims", EndUser = "external" })
 }
