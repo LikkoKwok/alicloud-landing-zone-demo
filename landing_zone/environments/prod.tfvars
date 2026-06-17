@@ -17,4 +17,4 @@ gpu_instance_type       = "ecs.gn7-c12g1.3xlarge"
 
 # Security
 log_retention_days      = 1095   # 3 years requirement
-admin_source_cidr       = "10.0.0.0/8"
+management_vpc_cidr     = "10.100.0.0/16"

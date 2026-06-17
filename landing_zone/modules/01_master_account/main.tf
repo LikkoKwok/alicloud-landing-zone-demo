@@ -73,3 +73,23 @@ resource "alicloud_resource_manager_control_policy_attachment" "trail_root" {
   policy_id = alicloud_resource_manager_control_policy.protect_trail.id
   target_id = alicloud_resource_manager_resource_directory.rd.root_folder_id
 }
+
+resource "alicloud_resource_manager_account" "hub" {
+  count       = 1
+  display_name = "hub-account"
+}
+
+resource "alicloud_resource_manager_account" "log" {
+  count       = 1
+  display_name = "log-account"
+}
+
+resource "alicloud_resource_manager_account" "app" {
+  count       = 1
+  display_name = "app-account"
+}
+
+resource "alicloud_resource_manager_account" "ai_lab" {
+  count       = 1
+  display_name = "ai-lab-account"
+}

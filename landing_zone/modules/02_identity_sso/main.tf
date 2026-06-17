@@ -42,7 +42,7 @@ resource "alicloud_ram_role" "federated" {
 
 resource "alicloud_ram_role_policy_attachment" "attach" {
   for_each    = merge(local.ai_roles, local.infra_roles)
-  role_name   = alicloud_ram_role.federated[each.key].name
+  role_name   = alicloud_ram_role.federated[each.key].role_name
   policy_name = each.value
   policy_type = "System"
 }

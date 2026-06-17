@@ -22,10 +22,10 @@ output "vault_instance_id" {
   value = alicloud_instance.cyberark_vault.id
 }
 
-output "ops_bastion_id" {
-  value = alicloud_instance.ops_bastion.id
+output "shared_service_vpc_attachment_id" {
+  value = alicloud_cen_transit_router_vpc_attachment.shared_service.id
 }
 
-output "shared_service_vpc_attachment_id" {
-  value = var.cen_id != "" ? alicloud_cen_transit_router_vpc_attachment.shared_service[0].id : ""
+output "management_vpc_attachment_id" {
+  value = alicloud_cen_transit_router_vpc_attachment.management.id
 }

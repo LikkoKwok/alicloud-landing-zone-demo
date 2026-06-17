@@ -7,20 +7,20 @@
 locals {
   environments = {
     sit = {
-      web_cidr = cidrsubnet(var.vpc_cidr, 8, 1)
-      db_cidr  = cidrsubnet(var.vpc_cidr, 8, 2)
+      web_cidr = cidrsubnet(var.core_insurance_vpc_cidr, 8, 1)
+      db_cidr  = cidrsubnet(var.core_insurance_vpc_cidr, 8, 2)
     }
     uat = {
-      web_cidr = cidrsubnet(var.vpc_cidr, 8, 11)
-      db_cidr  = cidrsubnet(var.vpc_cidr, 8, 12)
+      web_cidr = cidrsubnet(var.core_insurance_vpc_cidr, 8, 11)
+      db_cidr  = cidrsubnet(var.core_insurance_vpc_cidr, 8, 12)
     }
     preprod = {
-      web_cidr = cidrsubnet(var.vpc_cidr, 8, 21)
-      db_cidr  = cidrsubnet(var.vpc_cidr, 8, 22)
+      web_cidr = cidrsubnet(var.core_insurance_vpc_cidr, 8, 21)
+      db_cidr  = cidrsubnet(var.core_insurance_vpc_cidr, 8, 22)
     }
     prod = {
-      web_cidr = cidrsubnet(var.vpc_cidr, 8, 31)
-      db_cidr  = cidrsubnet(var.vpc_cidr, 8, 32)
+      web_cidr = cidrsubnet(var.core_insurance_vpc_cidr, 8, 31)
+      db_cidr  = cidrsubnet(var.core_insurance_vpc_cidr, 8, 32)
     }
   }
 }

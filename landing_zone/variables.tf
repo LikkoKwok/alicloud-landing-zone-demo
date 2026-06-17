@@ -102,11 +102,11 @@ variable "azure_ad_metadata_url" {
 # ============================================
 # SECURITY CONFIGURATION
 # ============================================
-# assume 10.0.0.0/8 as the internal network for admin access to CyberArk and bastion host
-variable "admin_source_cidr" {
+# assume 10.100.0.0/16 as the internal network for admin access to CyberArk and bastion host
+variable "management_vpc_cidr" {
   description = "CIDR block allowed to access CyberArk PVWA (HTTPS) and SSH"
   type        = string
-  default     = "10.0.0.0/8"  # Default to internal network, change as needed or for demo
+  default     = "10.100.0.0/16"
 }
 
 # ============================================

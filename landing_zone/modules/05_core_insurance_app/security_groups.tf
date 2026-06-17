@@ -287,12 +287,11 @@ resource "alicloud_security_group_rule" "prod_web_ssh" {
 
 # Prod web additional security: only allow from specific Ops admin IPs (if provided)
 resource "alicloud_security_group_rule" "prod_web_ssh_restricted" {
-  count             = var.admin_source_cidr != "" ? 1 : 0
   type              = "ingress"
   ip_protocol       = "tcp"
   port_range        = "22/22"
   security_group_id = alicloud_security_group.prod_web_sg.id
-  cidr_ip           = var.admin_source_cidr
+  cidr_ip           = var.management_vpc_cidr
   description       = "SSH from restricted admin IPs only"
 }
 

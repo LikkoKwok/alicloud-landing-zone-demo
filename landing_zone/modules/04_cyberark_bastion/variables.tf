@@ -3,7 +3,7 @@ variable "environment" {
   type        = string
 }
 
-variable "vpc_cidr" {
+variable "shared_service_vpc_cidr" {
   description = "CIDR block for Shared Service VPC"
   type        = string
   default     = "10.10.0.0/16"
@@ -21,16 +21,22 @@ variable "az_count" {
   default     = 2
 }
 
-variable "admin_source_cidr" {
-  description = "CIDR block for admin access to CyberArk and bastion"
+variable "management_vpc_cidr" {
+  description = "CIDR block for Management VPC (bastion host network)"
   type        = string
-  default     = "10.0.0.0/8"
+  default     = "10.100.0.0/16"
+}
+
+variable "my_public_ip" {
+  description = "Your public IP for SSH access to bastion host (e.g., '203.0.113.50/32')"
+  type        = string
+  default     = ""
 }
 
 variable "instance_type" {
-  description = "ECS instance type for CyberArk and bastion"
+  description = "ECS instance type for bastion host, CyberArk PVWA, and CyberArk Vault"
   type        = string
-  default     = "ecs.g6.large"
+  default     = "ecs.e-c1m1.large"
 }
 
 variable "image_id" {
@@ -47,13 +53,11 @@ variable "hub_vpc_id" {
 variable "cen_id" {
   description = "CEN instance ID for VPC attachment"
   type        = string
-  default     = ""
 }
 
 variable "transit_router_id" {
   description = "CEN Transit Router ID"
   type        = string
-  default     = ""
 }
 
 variable "tags" {

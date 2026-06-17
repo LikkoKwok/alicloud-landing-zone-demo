@@ -61,10 +61,16 @@ variable "palo_alto_trust_eni_id" {
   default     = ""
 }
 
-# assume 10.0.0.0/8 as the internal network for admin access to CyberArk and bastion host, can be adjusted as needed
-variable "admin_source_cidr" {
-  description = "CIDR block allowed to access CyberArk PVWA (HTTPS) and SSH"
+variable "management_vpc_cidr" {
+  description = "CIDR block for Management VPC (bastion host network)"
   type        = string
+  default     = "10.100.0.0/16"
+}
+
+variable "my_public_ip" {
+  description = "Your public IP for SSH access to bastion host (e.g., '203.0.113.50/32')"
+  type        = string
+  default     = ""
 }
 
 # validate CIDR is /16

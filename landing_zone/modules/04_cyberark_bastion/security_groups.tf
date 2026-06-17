@@ -1,11 +1,9 @@
 # ============================================
-# SECURITY GROUPS FOR SHARED SERVICE VPC
+# UNIFIED INGRESS SECURITY GROUP
 # ============================================
-
-# Unified Ingress Security Group
 resource "alicloud_security_group" "unified_ingress_sg" {
   vpc_id      = alicloud_vpc.shared_service.id
-  security_group_name  = "${var.environment}-unified-ingress-sg"
+  security_group_name        = "${var.environment}-unified-ingress-sg"
   description = "Unified ingress load balancer security group"
   tags        = merge(var.tags, { Service = "ingress" })
 }
@@ -33,15 +31,13 @@ resource "alicloud_security_group_rule" "ingress_to_apps" {
 # ============================================
 # AI GATEWAY SECURITY GROUP
 # ============================================
-
 resource "alicloud_security_group" "ai_gateway_sg" {
   vpc_id      = alicloud_vpc.shared_service.id
-  security_group_name  = "${var.environment}-ai-gateway-sg"
+  security_group_name         = "${var.environment}-ai-gateway-sg"
   description = "AI Gateway - API key validation, rate limiting"
   tags        = merge(var.tags, { Service = "ai-gateway" })
 }
 
-# Inbound from Palo Alto
 resource "alicloud_security_group_rule" "gateway_from_palo_alto" {
   type              = "ingress"
   ip_protocol       = "tcp"
@@ -51,7 +47,6 @@ resource "alicloud_security_group_rule" "gateway_from_palo_alto" {
   description       = "HTTPS from Palo Alto"
 }
 
-# Outbound to AI services
 resource "alicloud_security_group_rule" "gateway_to_claims" {
   type              = "egress"
   ip_protocol       = "tcp"
@@ -82,22 +77,21 @@ resource "alicloud_security_group_rule" "gateway_to_model_studio" {
 # ============================================
 # CYBERARK SECURITY GROUPS
 # ============================================
-
-# PVWA Security Group
 resource "alicloud_security_group" "cyberark_pvwa_sg" {
   vpc_id      = alicloud_vpc.shared_service.id
-  security_group_name  = "${var.environment}-cyberark-pvwa-sg"
+  security_group_name        = "${var.environment}-cyberark-pvwa-sg"
   description = "CyberArk PVWA - web interface for PAM access"
   tags        = merge(var.tags, { Service = "cyberark" })
 }
 
+# PVWA inbound from Management Subnet only
 resource "alicloud_security_group_rule" "pvwa_https_in" {
   type              = "ingress"
   ip_protocol       = "tcp"
   port_range        = "443/443"
   security_group_id = alicloud_security_group.cyberark_pvwa_sg.id
-  cidr_ip           = var.admin_source_cidr
-  description       = "HTTPS from admin network"
+  cidr_ip           = cidrsubnet(var.management_vpc_cidr, 8, 1)  # 10.100.1.0/24
+  description       = "HTTPS from management subnet"
 }
 
 resource "alicloud_security_group_rule" "pvwa_ssh_in" {
@@ -105,11 +99,10 @@ resource "alicloud_security_group_rule" "pvwa_ssh_in" {
   ip_protocol       = "tcp"
   port_range        = "22/22"
   security_group_id = alicloud_security_group.cyberark_pvwa_sg.id
-  cidr_ip           = var.admin_source_cidr
-  description       = "SSH from admin network"
+  cidr_ip           = cidrsubnet(var.management_vpc_cidr, 8, 1)  # 10.100.1.0/24
+  description       = "SSH from management subnet"
 }
 
-# Vault Security Group
 resource "alicloud_security_group" "cyberark_vault_sg" {
   vpc_id      = alicloud_vpc.shared_service.id
   security_group_name        = "${var.environment}-cyberark-vault-sg"
@@ -133,30 +126,4 @@ resource "alicloud_security_group_rule" "pvwa_to_vault" {
   security_group_id        = alicloud_security_group.cyberark_pvwa_sg.id
   source_security_group_id = alicloud_security_group.cyberark_vault_sg.id
   description              = "PVWA to Vault communication"
-}
-
-# Ops Bastion Security Group
-resource "alicloud_security_group" "ops_bastion_sg" {
-  vpc_id      = alicloud_vpc.shared_service.id
-  security_group_name        = "${var.environment}-ops-bastion-sg"
-  description = "Ops bastion host - jump server for management"
-  tags        = merge(var.tags, { Service = "ops" })
-}
-
-resource "alicloud_security_group_rule" "bastion_ssh_in" {
-  type              = "ingress"
-  ip_protocol       = "tcp"
-  port_range        = "22/22"
-  security_group_id = alicloud_security_group.ops_bastion_sg.id
-  cidr_ip           = var.admin_source_cidr
-  description       = "SSH from admin network"
-}
-
-resource "alicloud_security_group_rule" "bastion_to_all" {
-  type              = "egress"
-  ip_protocol       = "tcp"
-  port_range        = "22/3389"
-  security_group_id = alicloud_security_group.ops_bastion_sg.id
-  cidr_ip           = "10.0.0.0/8"
-  description       = "SSH/RDP to all internal VPCs"
 }

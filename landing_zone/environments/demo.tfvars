@@ -16,4 +16,4 @@ bastion_instance_type   = "ecs.e-c1m1.large"
 
 # Log
 log_retention_days      = 30
-admin_source_cidr       = "10.0.0.0/8"
+management_vpc_cidr     = "10.100.0.0/16"

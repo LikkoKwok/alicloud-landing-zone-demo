@@ -33,3 +33,8 @@ output "palo_alto_trust_eni_id" {
 output "palo_alto_instance_ids" {
   value = alicloud_instance.palo_alto[*].id
 }
+
+output "kms_key_id" {
+  description = "The ID of the KMS key used for encryption"
+  value       = alicloud_kms_key.hub.id   # Replace "this" with your actual resource name
+}
