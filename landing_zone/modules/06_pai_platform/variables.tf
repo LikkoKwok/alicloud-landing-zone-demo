@@ -34,3 +34,13 @@ variable "enable_dsw_instance" {
   type        = bool
   default     = false
 }
+
+variable "transit_router_id" {
+  description = "CEN Transit Router ID for VPC attachment"
+  type        = string
+}
+
+variable "cen_id" {
+  description = "CEN instance ID"
+  type        = string
+}

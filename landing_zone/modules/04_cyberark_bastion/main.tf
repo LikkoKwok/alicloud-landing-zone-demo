@@ -102,14 +102,76 @@ resource "alicloud_security_group_rule" "bastion_to_internal" {
   description       = "SSH to all internal VPCs"
 }
 
+# Outbound to 10.1.0.0/16
+resource "alicloud_security_group_rule" "all_tcp_to_core_insurance" {
+  type              = "egress"
+  ip_protocol       = "tcp"
+  port_range        = "1/65535"
+  security_group_id = alicloud_security_group.bastion_sg.id
+  cidr_ip           = "10.1.0.0/16"
+  description       = "All TCP to Core Insurance"
+}
+
+
+# Outbound: all internal VPCs (10.0.0.0/8)
+resource "alicloud_security_group_rule" "https_to_internal" {
+  type              = "egress"
+  ip_protocol       = "tcp"
+  port_range        = "443/443"
+  security_group_id = alicloud_security_group.bastion_sg.id
+  cidr_ip           = "10.0.0.0/8"
+  description       = "Connect to all internal VPCs"
+}
+
+# Outbound: all internal VPCs (10.0.0.0/8)
+resource "alicloud_security_group_rule" "http_to_internal" {
+  type              = "egress"
+  ip_protocol       = "tcp"
+  port_range        = "80/80"
+  security_group_id = alicloud_security_group.bastion_sg.id
+  cidr_ip           = "10.0.0.0/8"
+  description       = "Connect to all internal VPCs"
+}
+
+# ============================================
+# CYBERARK INSTANCES
+# ============================================
+
+# PVWA Instance
+resource "alicloud_instance" "cyberark_pvwa" {
+  count                 = 0   # set to 1 for demo, 0 to save cost
+  instance_name         = "${var.environment}-cyberark-pvwa"
+  instance_type         = var.instance_type
+  image_id              = var.image_id
+  vswitch_id            = alicloud_vswitch.cyberark_pvwa.id
+  security_groups       = [alicloud_security_group.cyberark_pvwa_sg.id]
+  system_disk_category  = "cloud_essd"
+  system_disk_encrypted = true
+  tags                  = merge(var.tags, { Role = "CyberArk-PVWA", Mock = "true" })
+}
+
+# Vault Instance
+resource "alicloud_instance" "cyberark_vault" {
+  count                 = 0   # set to 1 for demo, 0 to save cost
+  instance_name         = "${var.environment}-cyberark-vault"
+  instance_type         = var.instance_type
+  image_id              = var.image_id
+  vswitch_id            = alicloud_vswitch.cyberark_vault.id
+  security_groups       = [alicloud_security_group.cyberark_vault_sg.id]
+  system_disk_category  = "cloud_essd"
+  system_disk_encrypted = true
+  tags                  = merge(var.tags, { Role = "CyberArk-Vault", Mock = "true" })
+}
+
 # Bastion ECS instance
 resource "alicloud_instance" "bastion" {
+  count           = 1   # set to 1 for demo, 0 to save cost
   instance_name   = "${var.environment}-bastion-host"
   instance_type   = var.instance_type
   image_id        = var.image_id
   vswitch_id      = alicloud_vswitch.ops_bastion.id
   security_groups = [alicloud_security_group.bastion_sg.id]
-  
+
   # Bind a public IP
   internet_max_bandwidth_out = 5
   

@@ -18,6 +18,7 @@ resource "alicloud_security_group_rule" "ingress_from_palo_alto" {
   description       = "HTTPS from Palo Alto Trust subnet"
 }
 
+
 # Outbound to application VPCs
 resource "alicloud_security_group_rule" "ingress_to_apps" {
   type              = "egress"

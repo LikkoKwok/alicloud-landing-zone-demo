@@ -14,13 +14,14 @@ output "ai_gateway_security_group_id" {
   value = alicloud_security_group.ai_gateway_sg.id
 }
 
-output "pvwa_instance_id" {
-  value = alicloud_instance.cyberark_pvwa.id
-}
+# uncomment if using cyberark instances for demo purposes
+# output "pvwa_instance_id" {
+#   value = alicloud_instance.cyberark_pvwa.id
+# }
 
-output "vault_instance_id" {
-  value = alicloud_instance.cyberark_vault.id
-}
+# output "vault_instance_id" {
+#   value = alicloud_instance.cyberark_vault.id
+# }
 
 output "shared_service_vpc_attachment_id" {
   value = alicloud_cen_transit_router_vpc_attachment.shared_service.id

@@ -70,31 +70,31 @@ resource "alicloud_vswitch" "prod_web" {
 # ============================================
 
 # SIT Environment - Database
-# resource "alicloud_vswitch" "sit_db" {
-#   vpc_id       = alicloud_vpc.core_insurance.id
-#   cidr_block   = cidrsubnet(var.core_insurance_vpc_cidr, 8, 2)   # 10.1.2.0/24
-#   zone_id      = data.alicloud_zones.available.zones[0].id
-#   vswitch_name = "${var.environment}-sit-db"
-#   tags         = merge(var.tags, { Environment = "SIT", Tier = "database" })
-# }
+resource "alicloud_vswitch" "sit_db" {
+  vpc_id       = alicloud_vpc.core_insurance.id
+  cidr_block   = cidrsubnet(var.core_insurance_vpc_cidr, 8, 2)   # 10.1.2.0/24
+  zone_id      = data.alicloud_zones.available.zones[0].id
+  vswitch_name = "${var.environment}-sit-db"
+  tags         = merge(var.tags, { Environment = "SIT", Tier = "database" })
+}
 
 # UAT Environment - Database
-# resource "alicloud_vswitch" "uat_db" {
-#   vpc_id       = alicloud_vpc.core_insurance.id
-#   cidr_block   = cidrsubnet(var.core_insurance_vpc_cidr, 8, 12)  # 10.1.12.0/24
-#   zone_id      = data.alicloud_zones.available.zones[0].id
-#   vswitch_name = "${var.environment}-uat-db"
-#   tags         = merge(var.tags, { Environment = "UAT", Tier = "database" })
-# }
+resource "alicloud_vswitch" "uat_db" {
+  vpc_id       = alicloud_vpc.core_insurance.id
+  cidr_block   = cidrsubnet(var.core_insurance_vpc_cidr, 8, 12)  # 10.1.12.0/24
+  zone_id      = data.alicloud_zones.available.zones[0].id
+  vswitch_name = "${var.environment}-uat-db"
+  tags         = merge(var.tags, { Environment = "UAT", Tier = "database" })
+}
 
 # Pre-Production Environment - Database
-# resource "alicloud_vswitch" "preprod_db" {
-#   vpc_id       = alicloud_vpc.core_insurance.id
-#   cidr_block   = cidrsubnet(var.core_insurance_vpc_cidr, 8, 22)  # 10.1.22.0/24
-#   zone_id      = data.alicloud_zones.available.zones[0].id
-#   vswitch_name = "${var.environment}-preprod-db"
-#   tags         = merge(var.tags, { Environment = "PreProd", Tier = "database" })
-# }
+resource "alicloud_vswitch" "preprod_db" {
+  vpc_id       = alicloud_vpc.core_insurance.id
+  cidr_block   = cidrsubnet(var.core_insurance_vpc_cidr, 8, 22)  # 10.1.22.0/24
+  zone_id      = data.alicloud_zones.available.zones[0].id
+  vswitch_name = "${var.environment}-preprod-db"
+  tags         = merge(var.tags, { Environment = "PreProd", Tier = "database" })
+}
 
 # Production Environment - Database
 resource "alicloud_vswitch" "prod_db" {
@@ -261,7 +261,7 @@ resource "alicloud_cen_transit_router_vpc_attachment" "core_insurance" {
 # MOCK WEB SERVER (FOR DEMO: from bastion curl http://<mock-web-server-private-ip> and receive "Hello from Core Insurance App")
 # ============================================
 resource "alicloud_instance" "mock_web_server" {
-  count = 1
+  count = 1  # set to 1 for demo, 0 to save cost
   instance_name   = "${var.environment}-mock-web-server"
   instance_type   = "ecs.e-c1m1.large"
   image_id        = "aliyun_3_x64_20G_alibase_20240528.vhd"

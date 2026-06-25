@@ -119,7 +119,7 @@ data "alicloud_zones" "available" {
 
 # Dedicated VPC for AI workloads
 resource "alicloud_vpc" "ai" {
-  vpc_name   = "$ai-lab-vpc"
+  vpc_name   = "ai-lab-vpc"
   cidr_block = var.ai_lab_vpc_cidr
   tags       = merge(var.tags, { Workload = "AI" })
 }
@@ -162,7 +162,7 @@ resource "alicloud_resource_manager_resource_group" "actuarial" {
 
 # Low-cost OSS bucket for training data and models (for Demo purposes)
 resource "alicloud_oss_bucket" "training_data" {
-  bucket = "ai-training-data-${var.environment}"
+  bucket = "ai-training-data-${random_string.pai_suffix.result}"
   tags   = merge(var.tags, { DataClass = "sensitive" })
 }
 
@@ -170,4 +170,23 @@ resource "alicloud_oss_bucket_server_side_encryption" "training_enc" {
   bucket            = alicloud_oss_bucket.training_data.bucket
   sse_algorithm     = "KMS"
   kms_master_key_id = var.kms_key_id
+}
+
+# ============================================
+# ATTACH AI LAB VPC TO CEN
+# ============================================
+
+resource "alicloud_cen_transit_router_vpc_attachment" "ai_lab" {
+  cen_id            = var.cen_id
+  transit_router_id = var.transit_router_id
+  vpc_id            = alicloud_vpc.ai.id
+
+  lifecycle {
+    prevent_destroy = false
+  }
+
+  zone_mappings {
+    zone_id    = data.alicloud_zones.available.zones[0].id
+    vswitch_id = alicloud_vswitch.data.id  # use data subnet
+  }
 }

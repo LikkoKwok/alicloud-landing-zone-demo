@@ -14,10 +14,18 @@ enable_gpu_cluster      = true # change to true to provision PAI GPU cluster
 firewall_instance_type  = "ecs.e-c1m1.large"
 bastion_instance_type   = "ecs.e-c1m1.large"
 
+
 # Log
 log_retention_days      = 30
 
 # switch PAI region for available gpu resource
 pai_region = "cn-hongkong"
-# pai_region = "ap-southeast-1"  # 新加坡
-# pai_region = "cn-shenzhen"     # 深圳
+# pai_region = "ap-southeast-1"  # singapore
+# pai_region = "cn-shenzhen"     
+
+# CEN
+cen_id = "cen-ycdypx620qa3zhdfo7"
+transit_router_id = "tr-j6cuc0gmwpgt0vyh1ihzs"
+
+# Admin
+my_public_ip =  "180.188.172.67/32"   #"223.255.178.182/32"

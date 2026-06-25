@@ -24,7 +24,6 @@ variable "az_count" {
 variable "my_public_ip" {
   description = "Your public IP for SSH access to bastion host (e.g., '203.0.113.50/32')"
   type        = string
-  default     = ""  # set laptop ip for demo
 }
 
 variable "instance_type" {

@@ -12,19 +12,21 @@
 locals {
   # AI & Data Roles
   ai_roles = {
-    "ai-platform-admin" = "AliyunPAIFullAccess"           # AI Lab
-    "ml-engineer"       = ["AliyunPAIFullAccess","AliyunOSSReadOnlyAccess"]    # AI Training
-    "data-scientist"    = ["AliyunPAIFullAccess","AliyunOSSReadOnlyAccess"]    # Access to PAI DLC and OSS containing training data
-    "model-reviewer"    = "AliyunPAIReadOnlyAccess"       # AI Inference
-    "ai-user"           = "AliyunPAIReadOnlyAccess"       # Access to PAI EAS
-    "ai-auditor"        = "AliyunActionTrailReadOnlyAccess" # Logging
+    "ai-platform-admin" = ["AliyunPAIFullAccess","AliyunModelStudioFullAccess"]        # Full Admin Right
+    "ml-engineer"       = ["AliyunPAIFullAccess","AliyunOSSFullAccess","AliyunModelStudioReadOnlyAccess"]    # AI Training
+    "data-scientist"    = ["AliyunPAIFullAccess","AliyunOSSFullAccess","AliyunModelStudioReadOnlyAccess"]    # Access to PAI DLC and OSS containing training data
+    "model-reviewer"    = ["AliyunPAIReadOnlyAccess","AliyunModelStudioFullAccess"]    # Access to PAI EAS
+    "ai-user"           = "AliyunModelStudioReadOnlyAccess"     # Out-of-the-box AI usage
+    "ai-auditor"        = "AliyunActionTrailReadOnlyAccess"     # Logging
   }
 
   # Infrastructure Roles
   infra_roles = {
     "cloud-admin"   = "AdministratorAccess"               # Master Account
-    "network-admin" = "AliyunVPCFullAccess"               # Hub Security
-    "dba"           = "AliyunRDSFullAccess"               # Core Insurance App
+    "network-admin" = ["AliyunVPCFullAccess","AliyunECSFullAccess","AliyunEIPFullAccess",
+                       "AliyunNATGatewayFullAccess","AliyunCENFullAccess","AliyunVPNGatewayFullAccess",
+                       "AliyunExpressConnectFullAccess"]
+    "dba"           = ["AliyunRDSFullAccess","AliyunOSSFullAccess","AliyunVPCReadOnlyAccess","AliyunLogFullAccess"]
   }
 }
 

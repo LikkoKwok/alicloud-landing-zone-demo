@@ -26,9 +26,9 @@ output "claims_model_id" {
   value = alicloud_pai_workspace_model.claims_llm.id
 }
 
-output "actuarial_model_id" {
-  value = alicloud_pai_workspace_model.actuarial_model.id
-}
+# output "actuarial_model_id" {
+#   value = alicloud_pai_workspace_model.actuarial_model.id
+# }
 
 output "actuarial_experiment_id" {
   value = alicloud_pai_workspace_experiment.actuarial_exp.id

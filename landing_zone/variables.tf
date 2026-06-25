@@ -137,10 +137,10 @@ variable "transit_router_id" {
   default     = "tr-j6cuc0gmwpgt0vyh1ihzs"
 }
 
-# Private IP of Mock Web Server for bastion demo
-output "mock_web_server_private_ip" {
-  value = module.core_insurance_app.mock_web_server_private_ip
-}
+# Uncomment if using web server private IP for demo purposes
+# output "mock_web_server_private_ip" {
+#   value = module.core_insurance_app.mock_web_server_private_ip
+# }
 
 # PAI Related
 variable "enable_gpu_cluster" {
@@ -159,4 +159,9 @@ variable "gpu_instance_type" {
   description = "GPU instance type"
   type        = string
   default     = "ecs.gn6i-c4g1.xlarge"
+}
+
+variable "my_public_ip" {
+  description = "Your public IP for SSH access to bastion host (e.g., '203.0.113.50/32')"
+  type        = string
 }

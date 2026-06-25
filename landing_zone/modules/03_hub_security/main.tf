@@ -30,11 +30,11 @@ resource "alicloud_vswitch" "trusted" {
   tags         = var.tags
 }
 
-resource "alicloud_vswitch" "ops" {
+resource "alicloud_vswitch" "mgmt" {
   vpc_id       = alicloud_vpc.hub.id
   cidr_block   = cidrsubnet(var.hub_vpc_cidr, 8, 3)
   zone_id      = data.alicloud_zones.available.zones[0].id
-  vswitch_name = "${var.environment}-ops"
+  vswitch_name = "${var.environment}-mgmt"
   tags         = var.tags
 }
 
@@ -55,6 +55,35 @@ resource "alicloud_security_group" "fw" {
   tags                = var.tags
 }
 
+resource "alicloud_security_group_rule" "mgmt_https_from_bastion" {
+  type              = "ingress"
+  ip_protocol       = "tcp"
+  port_range        = "443/443"
+  security_group_id = alicloud_security_group.fw.id
+  cidr_ip           = "10.10.30.0/24"  # only allow traffic from CyberArk Bastion
+  description       = "Palo Alto Mgmt HTTPS from CyberArk Bastion"
+}
+
+resource "alicloud_security_group_rule" "mgmt_ssh_from_bastion" {
+  type              = "ingress"
+  ip_protocol       = "tcp"
+  port_range        = "22/22"
+  security_group_id = alicloud_security_group.fw.id
+  cidr_ip           = "10.10.30.0/24"
+  description       = "Palo Alto Mgmt SSH from CyberArk Bastion"
+}
+
+resource "alicloud_security_group_rule" "mgmt_deny_all" {
+  type              = "ingress"
+  ip_protocol       = "all"
+  port_range        = "-1/-1"
+  security_group_id = alicloud_security_group.fw.id
+  cidr_ip           = "0.0.0.0/0"
+  policy            = "drop"
+  priority          = 100
+  description       = "Deny all other management access"
+}
+
 # Palo Alto Instances
 resource "alicloud_instance" "palo_alto" {
   count                 = 2
@@ -70,6 +99,7 @@ resource "alicloud_instance" "palo_alto" {
 
 # Data source to get ENI ID after instance creation
 data "alicloud_network_interfaces" "palo_alto_eni" {
+
   depends_on  = [alicloud_instance.palo_alto]
   instance_id = alicloud_instance.palo_alto[0].id
 }
@@ -125,21 +155,6 @@ resource "alicloud_route_table" "inbound" {
 #   nexthop_id            = data.alicloud_network_interfaces.palo_alto.ids[0]
 # }
 
-# Unified Ingress SLB
-resource "alicloud_slb_load_balancer" "ingress" {
-  load_balancer_name = "${var.environment}-unified-ingress"
-  vswitch_id         = alicloud_vswitch.trusted.id
-  load_balancer_spec = "slb.s2.small"
-  address_type       = "intranet"
-  tags               = var.tags
-}
-
-# CEN
-# resource "alicloud_cen_instance" "backbone" {
-#   cen_instance_name = "${var.environment}-hk-sg-backbone"
-#   description       = "HongKong primary CEN backbone"
-#   tags              = var.tags
-# }
 
 data "alicloud_cen_instances" "existing" {
   ids = [var.cen_id]
@@ -151,7 +166,7 @@ resource "alicloud_cen_transit_router_vpc_attachment" "hub" {
   vpc_id            = alicloud_vpc.hub.id
   
   lifecycle {
-    prevent_destroy = true  # prevent from setting each time
+    prevent_destroy = false  # true to prevent from setting each time
   }
   zone_mappings {
     zone_id    = data.alicloud_zones.available.zones[0].id
@@ -184,10 +199,68 @@ resource "alicloud_cen_transit_router_vpc_attachment" "dataworks" {
   vpc_id            = var.dataworks_vpc_id
   
   lifecycle {
-    prevent_destroy = true  # prevent from setting each time
+    prevent_destroy = false  # true to prevent from setting each time
   }
   zone_mappings {
     zone_id    = data.alicloud_zones.available.zones[0].id
     vswitch_id = var.dataworks_vswitch_id
   }
 }
+
+# ============================================
+# GWLB Config (uncomment for prod)
+# ============================================
+# GWLB SERVER GROUP
+# ============================================
+
+# resource "alicloud_gwlb_server_group" "palo_alto" {
+#   server_group_name = "${var.environment}-palo-alto-sg"
+#   vpc_id            = alicloud_vpc.hub.id
+#   scheduler         = "5TCH"  # Consistent Hash
+#   protocol          = "GENEVE"  # GWLB uses GENEVE
+  
+#   servers {
+#     server_id   = alicloud_instance.palo_alto[0].id
+#     server_type = "Ecs"
+#   }
+  
+#   servers {
+#     server_id   = alicloud_instance.palo_alto[1].id
+#     server_type = "Ecs"
+#   }
+  
+#   health_check_config {
+#     health_check_enabled      = true
+#     health_check_protocol     = "HTTP"
+#     health_check_connect_port = 80
+#     health_check_path         = "/health-check"
+#     health_check_interval     = 10
+#     healthy_threshold         = 2
+#     unhealthy_threshold       = 2
+#   }
+# }
+
+# ============================================
+# GWLB LOAD BALANCER
+# ============================================
+
+# resource "alicloud_gwlb_load_balancer" "unified ingress" {
+#   load_balancer_name = "gwlb"
+#   # need to provide EIP for it to be internet-facing
+#   vpc_id             = var.hub_vpc_cidr
+  
+#   zone_mappings {
+#     vswitch_id = alicloud_vswitch.untrusted.id
+#     zone_id    = data.alicloud_zones.available.zones[0].id
+#   }
+# }
+
+# ============================================
+# GWLB LISTENER (監聽器)
+# ============================================
+
+# resource "alicloud_gwlb_listener" "default" {
+#   load_balancer_id = alicloud_gwlb_load_balancer.default.id
+#   server_group_id  = alicloud_gwlb_server_group.palo_alto.id
+#   listener_description = "${var.environment}-gwlb-listener"
+# }

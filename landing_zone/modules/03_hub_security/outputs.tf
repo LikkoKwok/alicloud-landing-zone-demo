@@ -14,8 +14,8 @@ output "untrust_subnet_cidr" {
   value = alicloud_vswitch.untrusted.cidr_block
 }
 
-output "ops_subnet_cidr" {
-  value = alicloud_vswitch.ops.cidr_block
+output "mgmt_subnet_cidr" {
+  value = alicloud_vswitch.mgmt.cidr_block
 }
 
 output "cen_id" {

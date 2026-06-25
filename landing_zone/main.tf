@@ -55,6 +55,7 @@ module "shared_service" {
   hub_vpc_id         = module.hub_security.hub_vpc_id
   cen_id             = var.cen_id
   transit_router_id  = var.transit_router_id
+  my_public_ip       = var.my_public_ip
   tags               = local.base_tags
   providers          = { alicloud = alicloud.shared }
 }
@@ -76,10 +77,12 @@ module "core_insurance_app" {
 
 module "pai_platform" {
   source            = "./modules/06_pai_platform"
-  count             = var.enable_gpu_cluster ? 1 : 0
+  # count             = var.enable_gpu_cluster ? 1 : 0
   environment       = var.environment
   ai_lab_vpc_cidr   = var.ai_lab_vpc_cidr
   hub_vpc_id        = module.hub_security.hub_vpc_id
+  transit_router_id = module.hub_security.transit_router_id
+  cen_id            = module.hub_security.cen_id
   gpu_instance_type = var.gpu_instance_type
   enable_dsw_instance = var.enable_dsw_instance
   kms_key_id        = module.hub_security.kms_key_id
