@@ -34,6 +34,7 @@ module "hub_security" {
   inbound_redirect_cidrs  = [var.core_insurance_vpc_cidr, var.ai_lab_vpc_cidr,]
   cen_id                  = var.cen_id
   transit_router_id       = var.transit_router_id
+  my_public_ip            = var.my_public_ip
   firewall_instance_type  = var.firewall_instance_type
   backbone_bandwidth_mbps = var.backbone_bandwidth_mbps
   az_count                = var.az_count

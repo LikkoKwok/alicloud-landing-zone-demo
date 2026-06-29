@@ -84,6 +84,15 @@ resource "alicloud_security_group_rule" "mgmt_deny_all" {
   description       = "Deny all other management access"
 }
 
+resource "alicloud_security_group_rule" "end_user_traffic_to_apps" {
+  type              = "egress"
+  ip_protocol       = "tcp"
+  port_range        = "443/443"
+  security_group_id = alicloud_security_group.fw.id
+  cidr_ip           = "10.1.0.0/16"
+  description       = "Allow end users access to apps via Palo Alto"
+}
+
 # Palo Alto Instances
 resource "alicloud_instance" "palo_alto" {
   count                 = 2
@@ -105,15 +114,15 @@ data "alicloud_network_interfaces" "palo_alto_eni" {
 }
 
 # Route Table for Trusted Subnet - force traffic through Palo Alto
-resource "alicloud_route_table" "trusted_rt" {
-  vpc_id           = alicloud_vpc.hub.id
-  route_table_name = "${var.environment}-trusted-rt"
-}
+# resource "alicloud_route_table" "trusted_rt" {
+#   vpc_id           = alicloud_vpc.hub.id
+#   route_table_name = "${var.environment}-trusted-rt"
+# }
 
-resource "alicloud_route_table_attachment" "trusted" {
-  vswitch_id     = alicloud_vswitch.trusted.id
-  route_table_id = alicloud_route_table.trusted_rt.id
-}
+# resource "alicloud_route_table_attachment" "trusted" {
+#   vswitch_id     = alicloud_vswitch.trusted.id
+#   route_table_id = alicloud_route_table.trusted_rt.id
+# }
 
 # Route to Palo Alto for all outbound traffic
 resource "alicloud_route_entry" "to_firewall" {
@@ -131,6 +140,108 @@ resource "alicloud_vpc_ipv4_gateway" "default" {
   vpc_id            = alicloud_vpc.hub.id
   enabled           = true
 }
+
+# ============================================
+# EIP for NAT Gateway
+# ============================================
+resource "alicloud_eip" "nat_eip" {
+  bandwidth            = "100"
+  internet_charge_type = "PayByTraffic"
+  payment_type         = "PayAsYouGo"
+  address_name         = "${var.environment}-nat-eip"
+  tags                 = var.tags
+}
+
+# ============================================
+# NAT GATEWAY
+# ============================================
+resource "alicloud_nat_gateway" "default" {
+  vpc_id         = alicloud_vpc.hub.id
+  vswitch_id     = alicloud_vswitch.untrusted.id
+  nat_gateway_name = "${var.environment}-nat-gateway"
+  nat_type       = "Enhanced"
+  network_type   = "internet"
+  payment_type   = "PayAsYouGo"
+  eip_bind_mode  = "NAT"
+  tags           = var.tags
+}
+
+resource "alicloud_eip_association" "nat_eip" {
+  allocation_id = alicloud_eip.nat_eip.id
+  instance_id   = alicloud_nat_gateway.default.id
+  instance_type = "Nat"
+}
+
+# ============================================
+# Use Forward Entry to replace SNAT/DNAT for now
+# ============================================
+resource "alicloud_snat_entry" "private_snat" {
+  snat_table_id = alicloud_nat_gateway.default.snat_table_ids
+  source_cidr   = cidrsubnet(var.hub_vpc_cidr, 8, 2)
+  snat_ip       = alicloud_eip.nat_eip.ip_address
+}
+resource "alicloud_forward_entry" "web_traffic" {
+  depends_on       = [alicloud_nat_gateway.default, alicloud_eip_association.nat_eip]  # because forward tb is automatically created when NAT gateway is created
+  forward_table_id = alicloud_nat_gateway.default.forward_table_ids
+  external_ip      = alicloud_eip.nat_eip.ip_address
+  external_port    = "8080"
+  internal_ip      = var.core_insurance_web_server_ip
+  internal_port    = "80"
+  ip_protocol      = "tcp"
+}
+
+# ============================================
+# ROUTING - 將出站流量指向 NAT Gateway
+# ============================================
+resource "alicloud_route_table" "trusted_rt" {
+  vpc_id           = alicloud_vpc.hub.id
+  route_table_name = "${var.environment}-trusted-rt"
+}
+
+resource "alicloud_route_table_attachment" "trusted" {
+  vswitch_id     = alicloud_vswitch.trusted.id
+  route_table_id = alicloud_route_table.trusted_rt.id
+}
+
+# ============================================
+# 公有子網路由：入站流量 → IPv4 Gateway
+# ============================================
+resource "alicloud_route_table" "public_rt" {
+  vpc_id           = alicloud_vpc.hub.id
+  route_table_name = "${var.environment}-public-rt"
+}
+
+resource "alicloud_route_table_attachment" "untrusted" {
+  vswitch_id     = alicloud_vswitch.untrusted.id
+  route_table_id = alicloud_route_table.public_rt.id
+}
+
+resource "alicloud_route_entry" "to_ipv4_gateway" {
+  route_table_id        = alicloud_route_table.public_rt.id
+  destination_cidrblock = "0.0.0.0/0"
+  nexthop_type          = "Ipv4Gateway"
+  nexthop_id            = alicloud_vpc_ipv4_gateway.default.id
+}
+
+# ============================================
+# SECURITY GROUP - 簡單白名單控制
+# ============================================
+resource "alicloud_security_group" "web_access" {
+  vpc_id                    = alicloud_vpc.hub.id
+  security_group_name       = "${var.environment}-web-access-sg"
+  description               = "Allow access from my public IP only"
+  tags                      = var.tags
+}
+
+resource "alicloud_security_group_rule" "allow_my_ip" {
+  type              = "ingress"
+  ip_protocol       = "tcp"
+  port_range        = "8080/8080"
+  security_group_id = alicloud_security_group.web_access.id
+  cidr_ip           = var.my_public_ip
+  description       = "Allow only my public IP"
+}
+
 
 # ============================================
 # GATEWAY ROUTE TABLE (For Inbound Traffic)
@@ -164,6 +275,8 @@ resource "alicloud_cen_transit_router_vpc_attachment" "hub" {
   cen_id            = var.cen_id
   transit_router_id = var.transit_router_id
   vpc_id            = alicloud_vpc.hub.id
+  auto_publish_route_enabled = true  # KEEPS ROUTE SYNCHRONIZATION ENABLED
+  
   
   lifecycle {
     prevent_destroy = false  # true to prevent from setting each time
@@ -192,11 +305,12 @@ resource "alicloud_cen_transit_router_vpc_attachment" "hub" {
 # ============================================
 
 resource "alicloud_cen_transit_router_vpc_attachment" "dataworks" {
-  count = var.dataworks_vpc_id != "" ? 1 : 0
-  
+  count = var.dataworks_vpc_id != "" ? 1 : 0 
   cen_id            = var.cen_id
   transit_router_id = var.transit_router_id
   vpc_id            = var.dataworks_vpc_id
+  auto_publish_route_enabled = true  # KEEPS ROUTE SYNCHRONIZATION ENABLED
+  
   
   lifecycle {
     prevent_destroy = false  # true to prevent from setting each time

@@ -250,6 +250,7 @@ resource "alicloud_cen_transit_router_vpc_attachment" "core_insurance" {
   cen_id            = var.cen_id
   transit_router_id = var.transit_router_id
   vpc_id            = alicloud_vpc.core_insurance.id
+  auto_publish_route_enabled = true  # KEEPS ROUTE SYNCHRONIZATION ENABLED
   
   zone_mappings {
     zone_id    = data.alicloud_zones.available.zones[0].id

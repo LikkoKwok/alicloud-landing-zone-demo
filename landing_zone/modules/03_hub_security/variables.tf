@@ -61,3 +61,14 @@ variable "cen_id" {
   description = "Existing CEN instance ID"
   type        = string
 }
+
+variable "my_public_ip" {
+  description = "Mock whitelist IP (203.0.113.50/32)"
+  type        = string
+}
+
+variable "core_insurance_web_server_ip" {
+  description = "Private IP of the Core Insurance web server"
+  type        = string
+  default     = "10.1.31.172"
+}

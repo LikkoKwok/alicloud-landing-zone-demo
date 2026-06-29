@@ -287,13 +287,13 @@ resource "alicloud_security_group_rule" "prod_web_https_from_bastion" {
   description       = "HTTPs from Ops Bastion"
 }
 
-resource "alicloud_security_group_rule" "prod_web_https" {
+resource "alicloud_security_group_rule" "prod_web_https_from_palo_alto" {
   type              = "ingress"
   ip_protocol       = "tcp"
   port_range        = "443/443"
   security_group_id = alicloud_security_group.prod_web_sg.id
-  cidr_ip    = "10.10.0.0/16"
-  description       = "HTTPS only via Palo Alto (no HTTP for prod)"
+  cidr_ip    = "10.20.0.0/16"
+  description       = "HTTPS only via Palo Alto"
 }
 
 # Prod web does NOT allow HTTP (only HTTPS for security)

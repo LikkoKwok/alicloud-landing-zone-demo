@@ -16,7 +16,7 @@ resource "alicloud_ram_role" "cs_auto_scaler" {
 
 # Attach the required policy
 resource "alicloud_ram_role_policy_attachment" "cs_auto_scaler_policy" {
-  role_name   = alicloud_ram_role.cs_auto_scaler.name
+  role_name   = alicloud_ram_role.cs_auto_scaler.role_name
   policy_name = "AliyunCSManagedAutoScalerRolePolicy"
   policy_type = "System"
 }

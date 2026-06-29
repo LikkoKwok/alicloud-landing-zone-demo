@@ -43,3 +43,7 @@ output "kms_key_id" {
 output "hub_vpc_attachment_id" {
   value = alicloud_cen_transit_router_vpc_attachment.hub.id
 }
+
+output "nat_gateway_public_ip" {
+  value = alicloud_eip.nat_eip.ip_address
+}
